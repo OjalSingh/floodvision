@@ -60,13 +60,81 @@ class FloodDataset(Dataset):
                 f"Image count ({len(self.image_paths)}) "
                 f"does not match mask count ({len(self.mask_paths)})"
             )
+        self.valid_pairs = []
+        self.invalid_pairs = []
+
+        for image_path, mask_path in zip(
+            self.image_paths,
+            self.mask_paths
+        ):
+            image = cv2.imread(str(image_path))
+            mask = cv2.imread(
+                str(mask_path),
+                cv2.IMREAD_GRAYSCALE
+            )
+
+            if image is None:
+                self.invalid_pairs.append(
+                    (
+                        image_path.name,
+                        "Image could not be loaded"
+                    )
+                )
+                continue
+
+            if mask is None:
+                self.invalid_pairs.append(
+                    (
+                        mask_path.name,
+                        "Mask could not be loaded"
+                    )
+                )
+                continue
+
+            image_height, image_width = image.shape[:2]
+            mask_height, mask_width = mask.shape[:2]
+
+            if (
+                image_height != mask_height
+                or image_width != mask_width
+            ):
+                self.invalid_pairs.append(
+                    (
+                        image_path.name,
+                        f"Image={image_height}x{image_width}, "
+                        f"Mask={mask_height}x{mask_width}"
+                    )
+                )
+                continue
+            
+            self.valid_pairs.append(
+                (
+                    image_path,
+                    mask_path
+                )
+            )
+
+        if len(self.valid_pairs) == 0:
+            raise ValueError(
+                "No valid image-mask pairs found."
+            )
+
+        print(
+            f"Valid samples: {len(self.valid_pairs)}"
+        )
+
+        print(
+            f"Invalid samples removed: "
+            f"{len(self.invalid_pairs)}"
+        )
+        
+        
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.valid_pairs)
 
     def __getitem__(self, idx):
-        image_path = self.image_paths[idx]
-        mask_path = self.mask_paths[idx]
+        image_path, mask_path = self.valid_pairs[idx]
 
         image = cv2.imread(str(image_path))
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
@@ -80,19 +148,7 @@ class FloodDataset(Dataset):
             raise ValueError(
                 f"Failed to load mask: {mask_path}"
             )
-
-        image_height, image_width = image.shape[:2]
-        mask_height, mask_width = mask.shape[:2]
-
-        if image_height != mask_height or image_width != mask_width:
-            raise ValueError(
-                f"Dimension mismatch:\n"
-                f"Image: {image_path.name} -> "
-                f"{image_height}x{image_width}\n"
-                f"Mask: {mask_path.name} -> "
-                f"{mask_height}x{mask_width}"
-            )
-
+        
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         image = cv2.resize(
