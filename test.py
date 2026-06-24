@@ -1,17 +1,26 @@
 import torch
 
-from models.unet import UNet
+from losses.dice_loss import DiceLoss
 
-model = UNet()
 
-dummy_input = torch.randn(
+loss_fn = DiceLoss()
+
+predictions = torch.randn(
     8,
-    3,
+    1,
     256,
     256
 )
 
-output = model(dummy_input)
+targets = torch.randint(
+    low=0,
+    high=2,
+    size=(8, 1, 256, 256)
+).float()
 
-print("Input :", dummy_input.shape)
-print("Output:", output.shape)
+loss = loss_fn(
+    predictions,
+    targets
+)
+
+print("Loss:", loss.item())
