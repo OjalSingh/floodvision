@@ -14,3 +14,18 @@ Segment flooded areas from input images and maximize Dice Coefficient.
 - [ ] U-Net implementation
 - [ ] Training pipeline
 - [ ] Evaluation
+
+## Devlop
+Dataset
+↓
+DataLoader
+↓
+Batch Verification
+↓
+U-Net
+↓
+Loss
+↓
+Training Loop
+↓
+Evaluation
