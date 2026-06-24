@@ -95,6 +95,8 @@ def verify_dataloaders(train_loader, val_loader):
             "Validation DataLoader returned no batches."
         )
 
+    #error handling
+
     if train_images.ndim != 4:
         raise ValueError(
             f"Expected training images to have 4 dimensions, "

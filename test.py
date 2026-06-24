@@ -1,19 +1,17 @@
-from datasets.flood_dataset import FloodDataset
+import torch
 
-dataset = FloodDataset(
-    image_dir="data/images",
-    mask_dir="data/masks",
-    image_size=(256, 256)
+from models.unet import UNet
+
+model = UNet()
+
+dummy_input = torch.randn(
+    8,
+    3,
+    256,
+    256
 )
 
-print("Dataset size:", len(dataset))
+output = model(dummy_input)
 
-image, mask = dataset[0]
-
-print("Image shape:", image.shape)
-print("Mask shape:", mask.shape)
-
-print("Image dtype:", image.dtype)
-print("Mask dtype:", mask.dtype)
-
-print("Mask unique values:", mask.unique())
+print("Input :", dummy_input.shape)
+print("Output:", output.shape)
