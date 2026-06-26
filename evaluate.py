@@ -2,7 +2,7 @@ from pathlib import Path
 import torch
 from models.unet import UNet
 from train import create_dataloaders
-
+from metrics.iou import intersection_over_union
 
 MODEL_PATH = "best_model.pth"
 
@@ -268,6 +268,7 @@ def evaluate_dice(
     model.eval()
 
     total_dice = 0.0
+    total_iou = 0.0
     total_batches = 0
 
     with torch.no_grad():
@@ -302,7 +303,13 @@ def evaluate_dice(
                 masks
             )
 
+            iou = intersection_over_union(
+                predictions,
+                masks
+            )
+
             total_dice += batch_dice
+            total_iou += iou.item()
             total_batches += 1
 
     if total_batches == 0:
@@ -315,7 +322,15 @@ def evaluate_dice(
         total_batches
     )
 
-    return average_dice
+    average_iou = (
+        total_iou /
+        total_batches
+    )
+
+    return (
+        average_dice,
+        average_iou
+    )
 
 
 # def main():
@@ -377,7 +392,7 @@ def main():
 
     val_loader = load_validation_dataloader()
 
-    average_dice = evaluate_dice(
+    average_dice, average_iou = evaluate_dice(
         model,
         val_loader,
         device
@@ -388,6 +403,10 @@ def main():
     print(
         f"Average Dice Score : "
         f"{average_dice:.4f}"
+    )
+    print(
+        f"Average IoU Score  : "
+        f"{average_iou:.4f}"
     )
 
 
